@@ -17,6 +17,7 @@ const Row: React.FC<IRow> = ({row, updateRow, deleteRow}) => {
                 onChange={(e) => updateRow(row.key, e.target.name, e.target.value)}
             />
             <Button color="failure" pill={true} title="delete" onClick={() => deleteRow(row.key)}>❌</Button>
+            <Button color="" onClick={() => updateRow(row.key, 'isDisabled', !row.isDisabled)}>{row.isDisabled ? 'Enable' : 'Disable'} </Button>
         </div>
     )
 }
