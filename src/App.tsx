@@ -1,21 +1,26 @@
-import React, {useEffect, useState} from 'react';
-import { Button, DarkThemeToggle, Flowbite, Footer, Navbar, Select, TextInput } from 'flowbite-react';
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Card, Flowbite } from "flowbite-react";
 import { v4 as uuidv4 } from "uuid";
-import { IRowData } from './types/app.type';
+import { IRowData } from "./types/app.type";
+import Header from "./components/Header";
+import Row from "./components/Row";
+import Footer from "./components/Footer";
 
-
-
-const App:React.FC = () => {
+const App: React.FC = () => {
   const [rows, setRows] = useState<Array<IRowData>>([]);
   const [total, setTotal] = useState<any>();
-  
+
   useEffect(() => {
-    console.log('sdsd', rows);
-    const totalVal = rows.filter((row: IRowData) => !row.isDisabled);
-    // totalVal.reduce((prev: any, next: IRowData) => {
-    //     const value = current.plusMinus === "-" ? -Math.abs(current.val) : Math.abs(current.val);
-    //   accumilator += value
-    // }, 0);
+    const totalVal: any = rows
+      .filter((row: IRowData) => !row.isDisabled && row.val !== undefined)
+      .reduce((accumilator: any, current: IRowData) => {
+        const value =
+          current.plusMinus === "-"
+            ? -Math.abs(Number(current.val))
+            : Math.abs(Number(current.val));
+        return accumilator + value;
+      }, 0);
+    setTotal(totalVal);
   }, [rows]);
 
   const addNewRow = () => {
@@ -23,75 +28,56 @@ const App:React.FC = () => {
       key: uuidv4(),
       plusMinus: "+",
       val: undefined,
-      isDisabled: false
+      isDisabled: false,
     };
     setRows([...rows, newRow]);
   };
 
   const updateRow = (key: string, field: string, value: any) => {
-    const updatedRow: any = {...rows.find((row: IRowData) => row.key === key), [field] : value};
-    const updatedRows = [...rows.filter((row: IRowData) => row.key !== key), updatedRow];
+    const updatedRows: any = rows.map((row: IRowData) => {
+      return row.key === key ? { ...row, [field]: value } : row;
+    });
     setRows(updatedRows);
-  }
+  };
 
   const deleteRow = (id: string) => {
-    setRows(rows.filter((row: IRowData) => row.key !== id))
+    setRows(rows.filter((row: IRowData) => row.key !== id));
   };
 
   return (
     <Flowbite>
-      <Navbar fluid={true} rounded={true}>
-        <Navbar.Brand href="/">
-          <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
-            Welcome to the React Challenge
+      <Header />
+      <main className="container h-screen mx-auto my-2">
+        <div className="flex flex-row justify-center my-4">
+          <Button onClick={() => addNewRow()} color="light">
+            Add Row
+          </Button>
+        </div>
+        <Alert color="warning" rounded={false} withBorderAccent={true}>
+          <span>
+            <span className="font-medium">Result {total}</span>
           </span>
-        </Navbar.Brand>
-        <div className="flex md:order-2">
-          <DarkThemeToggle />
-        </div>
-      </Navbar>
-      <main className="container mx-auto">
-        <div className="flex flex-row">
-          <Button onClick={() => addNewRow()}>Add Row</Button>
-        </div>
-        <div>
-          {
-            rows.length > 0 && rows.map((row: IRowData, index: number) => {
-              return (
-                <div className="flex flex-row gap-3 my-4" key={index}>
-                  <Select name="plusMinus" value={row.plusMinus} onChange={(e) => updateRow(row.key, e.target.name, e.target.value)}>
-                    <option className='w-16'>+</option>
-                    <option className='w-16'>-</option>
-                  </Select>
-                  <TextInput
-                    type="number"
-                    name="val"
-                    value={row.val}
-                    disabled={row.isDisabled}
-                    onChange={(e) => updateRow(row.key, e.target.name, e.target.value)}
+        </Alert>
+        <div className="justify-center mt-4 mb-6">
+          {rows.length > 0 && (
+            <Card>
+              {rows.map((row: IRowData, index: number) => {
+                return (
+                  <Row
+                    key={index}
+                    deleteRow={deleteRow}
+                    updateRow={updateRow}
+                    row={row}
                   />
-                  <Button color="failure" pill={true} title="delete" onClick={() => deleteRow(row.key)}>
-                    ❌
-                  </Button>
-                  <Button color="" onClick={() => updateRow(row.key, 'isDisabled', !row.isDisabled)}>{row.isDisabled ? 'Enable' : 'Disable'} </Button>
-                </div>
-              )
-            })
-          }
-        </div>
-        <div className="flex flex-row">
-          <Button onClick={() => addNewRow()}>Add Row</Button>
+                );
+              })}
+            </Card>
+          )}
         </div>
       </main>
-      <Footer>
-        <div className="w-full">
-          <div className="w-full px-4 py-6 bg-gray-400 dark:bg-gray-600 sm:flex sm:items-center sm:justify-between">
-            <Footer.Copyright href="#" by="dupadhyay3" year={new Date().getFullYear()} />
-          </div>
-        </div>
-      </Footer>
+      <Footer />
     </Flowbite>
   );
-}
+};
 
 export default App;
